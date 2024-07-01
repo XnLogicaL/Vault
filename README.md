@@ -1,1 +1,1 @@
-# OpenInventory-Rebooted
+# Vault
