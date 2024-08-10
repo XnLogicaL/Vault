@@ -126,31 +126,26 @@ function Inventory:HasItemWithName(itemName: string)
 end
 
 function Inventory:Reconcile()
-	return select(
-		2,
-		Promise.new(function(resolve, reject)
-			local overflow = Util.CountKeys(self._contents) - self._size
-			local itemNames = Util.GetKeys(self._contents)
-			if overflow > 0 then
-				Util.Log(OVERFLOW_DETECTED:format(overflow))
-				for i = 1, overflow do
-					local item = self:GetFirstItemByName(itemNames[#itemNames])
-					local name, id = next(item)
-					self:RemoveItem(true, id)
-				end
+	return Promise.new(function(resolve, reject)
+		local overflow = Util.CountKeys(self._contents) - self._size
+		local itemNames = Util.GetKeys(self._contents)
+		if overflow > 0 then
+			Util.Log(OVERFLOW_DETECTED:format(overflow))
+			for i = 1, overflow do
+				local item = self:GetFirstItemByName(itemNames[#itemNames])
+				local name, id = next(item)
+				self:RemoveItem(true, id)
 			end
-			for itemName, itemCell in self._contents do
-				if Util.CountKeys(itemCell) == 0 then
-					-- Commented because it floods the console
-					-- Util.Log(EMPTY_CATEGORY_DETECTED:format(itemName))
-					self._contents[itemName] = nil
-				end
+		end
+		for itemName, itemCell in self._contents do
+			if Util.CountKeys(itemCell) == 0 then
+				-- Commented because it floods the console
+				-- Util.Log(EMPTY_CATEGORY_DETECTED:format(itemName))
+				self._contents[itemName] = nil
 			end
-			resolve()
-		end)
-			:catch(Util.Log)
-			:await()
-	)
+		end
+		resolve()
+	end):catch(Util.Log)
 end
 
 function Inventory:SetMetaData(data: { any? })
@@ -213,7 +208,7 @@ function Inventory:RemoveItemWithId(itemId: string)
 	name, meta = item.name, category[itemId]
 	category[itemId] = nil
 
-	self:Reconcile()
+	self:Reconcile():await()
 
 	self.ItemRemoving:Fire(Item.new({
 		meta = meta,
@@ -223,8 +218,15 @@ function Inventory:RemoveItemWithId(itemId: string)
 end
 
 function Inventory:RemoveItemWithName(itemName: string)
-	assert(not self:IsLocked(), INV_LOCKED_ERR)
-	assert(self._contents[itemName], ITEM_PRESENCE_ERR:format(itemName, self:__tostring()))
+	assert(not self:IsLocked(),
+		INV_LOCKED_ERR
+	)
+	assert(self._contents[itemName],
+		ITEM_PRESENCE_ERR:format(
+			itemName,
+			self:__tostring()
+		)
+	)
 
 	local id, meta
 
@@ -237,7 +239,7 @@ function Inventory:RemoveItemWithName(itemName: string)
 	id, meta = keys[len], category[keys[len]]
 	category[itemName][keys[len]] = nil
 
-	self:Reconcile()
+	self:Reconcile():await()
 
 	self.ItemRemoving:Fire(Item.new({
 		meta = meta,

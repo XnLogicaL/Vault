@@ -103,11 +103,19 @@ function Vault.new(_size: number?, _contents: { any? }?, _meta: { any? }?): Type
 end
 
 function Vault.Is(object: any)
-	return type(object) == "table" and getmetatable(object) == Inventory
+	return
+		type(object) == "table"
+		and getmetatable(object) == Inventory
 end
 
 function Vault:DecodeAndWrap(obj: string)
-	return self.new(Encoder:Decode(obj, Info.Version, Info.DisplayVersionMismatch))
+	return self.new(
+		Encoder:Decode(
+			obj,
+			Info.Version,
+			Info.DisplayVersionMismatch
+		)
+	)
 end
 
 function Vault:Encode(obj: TypeDefs.InventoryInstance)

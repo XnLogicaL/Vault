@@ -25,14 +25,12 @@ function Registry:GetObjectByLink(player: Player): TypeDefs.InventoryInstance?
 end
 
 function Registry:Register(object: any)
-	return Promise.new(function(resolve, reject)
+	return Promise.new(function(resolve, _)
 		assert(t.inventory(object))
 		assert(self.r[object._id] == nil, ERR_REG_REG:format(tostring(object)))
 		self.r[object._id] = object
 		resolve()
-	end)
-		:catch(warn)
-		:await()
+	end):catch(warn)
 end
 
 function Registry:Unregister(object: any)
@@ -41,9 +39,7 @@ function Registry:Unregister(object: any)
 		assert(self:GetObjectById(object._id) ~= nil, ERR_UNREG_UNREG:format(tostring(object)))
 		self.r[object._id] = nil
 		resolve()
-	end)
-		:catch(warn)
-		:await()
+	end):catch(warn)
 end
 
 function Registry:RegisterItem(object: any)
@@ -52,9 +48,7 @@ function Registry:RegisterItem(object: any)
 		assert(self.ir[object.__id] == nil, ERR_REG_REG:format(tostring(object)))
 		self.ir[object.__id] = object
 		resolve()
-	end)
-		:catch(warn)
-		:await()
+	end):catch(warn)
 end
 
 function Registry:UnregisterItem(object: any)
@@ -63,9 +57,7 @@ function Registry:UnregisterItem(object: any)
 		assert(self:GetObjectById(object.__id) ~= nil, ERR_UNREG_UNREG:format(tostring(object)))
 		self.ir[object.__id] = nil
 		resolve()
-	end)
-		:catch(warn)
-		:await()
+	end):catch(warn)
 end
 
 return Registry
